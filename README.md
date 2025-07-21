@@ -42,53 +42,18 @@ Storage (ClickHouse): We use ClickHouse, a high-performance, column-oriented OLA
 Querying (API Service): The API service also exposes a GET /activities endpoint. When a user requests data, the API directly queries the ClickHouse database to fetch and return the results.
 
 ## Technology Stack 🛠️
-Category
+# Technology Stack
 
-Technology
+| **Category**       | **Technology**    | **Purpose**                                                                 |
+|--------------------|-------------------|------------------------------------------------------------------------------|
+| Backend            | Go                | For building high-performance, concurrent microservices.                    |
+| Messaging          | Apache Kafka      | Resilient, high-throughput message bus for decoupling services.             |
+| Database           | ClickHouse        | High-performance OLAP database for real-time analytics.                     |
+| Containerization   | Docker            | Containerizing all applications and services.                               |
+| Orchestration      | Kubernetes (K8s)  | Production-grade deployment, scaling, and management.                       |
+| Infrastructure     | Terraform         | Infrastructure as Code (IaC) for provisioning the K8s cluster.              |
+| CI/CD              | Jenkins           | Automating the entire build, push, and deploy pipeline.                     |
 
-Purpose
-
-Backend
-
-Go
-
-For building high-performance, concurrent microservices.
-
-Messaging
-
-Apache Kafka
-
-Resilient, high-throughput message bus for decoupling services.
-
-Database
-
-ClickHouse
-
-High-performance OLAP database for real-time analytics.
-
-Containerization
-
-Docker
-
-Containerizing all applications and services.
-
-Orchestration
-
-Kubernetes (K8s)
-
-Production-grade deployment, scaling, and management.
-
-Infrastructure
-
-Terraform
-
-Infrastructure as Code (IaC) for provisioning the K8s cluster.
-
-CI/CD
-
-Jenkins
-
-Automating the entire build, push, and deploy pipeline.
 
 ## Getting Started
 There are two ways to run this project: locally for development and in the cloud for a production-like setup.
@@ -96,62 +61,57 @@ There are two ways to run this project: locally for development and in the cloud
 ### Local Development (with Docker Compose)
 This is the quickest way to get the application running on your machine.
 
-Prerequisites:
+**Prerequisites:**
+- Docker
+- Docker Compose
 
-Docker
+**Steps:**
 
-Docker Compose
-
-Steps:
-
-Clone the repository:
-
+**Clone the repository:**
+```
 git clone https://github.com/your-username/your-repo-name.git
 cd your-repo-name
-
+```
 Build and start all services:
-
+```
 docker-compose up --build
-
+```
 Open a new terminal and test the endpoints:
 
 Track a new event:
-
+```
 curl -X POST -H "Content-Type: application/json" \
 -d '{"user_id": "local_user", "action": "app_started"}' \
 http://localhost:8080/track
-
+```
 View all events:
-
+```
 curl http://localhost:8080/activities
-
+```
 ### Cloud Deployment (Terraform & Kubernetes)
 This deploys the application to a cloud-native environment managed by Kubernetes.
 
-Prerequisites:
+**Prerequisites:**
 
-A cloud provider account (e.g., Google Cloud, AWS)
+- A cloud provider account (e.g., Google Cloud, AWS)
+- Terraform CLI
+- kubectl CLI
+- Helm CLI
 
-Terraform CLI
+**Steps:**
 
-kubectl CLI
-
-Helm CLI
-
-Steps:
-
-Provision the Infrastructure:
+1. Provision the Infrastructure:
 Navigate to the terraform directory and use Terraform to create the Kubernetes cluster.
-
+```
 cd terraform
 terraform init
 terraform apply
-
+```
 This will build the cluster and output a command to configure kubectl.
 
-Deploy Dependencies with Helm:
+2. Deploy Dependencies with Helm:
 Helm is the package manager for Kubernetes. Use it to deploy production-ready instances of Kafka and ClickHouse.
-
+```
 # Example for Kafka
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install kafka bitnami/kafka --namespace kafka --create-namespace
@@ -159,43 +119,38 @@ helm install kafka bitnami/kafka --namespace kafka --create-namespace
 # Example for ClickHouse
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install clickhouse bitnami/clickhouse --namespace clickhouse --create-namespace
-
+```
 Note: You will need to update the service names in the Kubernetes deployment files to match the names created by these Helm charts.
 
-Deploy the Application:
+3. Deploy the Application:
 Navigate to the k8s directory and apply the application manifests.
-
+```
 cd ../k8s
 kubectl apply -f .
-
+```
 This will create the deployments and services for the api and worker. Find the public IP address of the api-service to interact with your deployed application.
 
 ## CI/CD Pipeline with Jenkins автоматизация
 This project includes a Jenkinsfile that defines a complete, automated pipeline.
 
-Pipeline Stages:
-
-Checkout: Clones the source code from the Git repository.
-
-Build API Image: Compiles the api Go application, builds its Docker image, and tags it with the build number.
-
-Build Worker Image: Does the same for the worker application.
-
-Push to Registry: Pushes both newly built images to a container registry (like Docker Hub or Google Container Registry).
-
-Deploy to Kubernetes: Uses kubectl to trigger a rolling update for the api and worker deployments in the Kubernetes cluster, deploying the new images with zero downtime.
+**Pipeline Stages:**
+1. Checkout: Clones the source code from the Git repository.
+2. Build API Image: Compiles the api Go application, builds its Docker image, and tags it with the build number.
+3. Build Worker Image: Does the same for the worker application.
+4. Push to Registry: Pushes both newly built images to a container registry (like Docker Hub or Google Container Registry).
+5. Deploy to Kubernetes: Uses kubectl to trigger a rolling update for the api and worker deployments in the Kubernetes cluster, deploying the new images with zero downtime.
 
 ## Future Scope & Improvements 🔮
 This project provides a solid foundation. Here are some exciting features that could be added:
 
-📈 Monitoring & Alerting: Integrate Prometheus to scrape custom metrics from the Go services and Grafana to build real-time dashboards for system health and performance.
+- 📈 Monitoring & Alerting: Integrate Prometheus to scrape custom metrics from the Go services and Grafana to build real-time dashboards for system health and performance.
 
-🌐 Web UI Dashboard: Build a frontend application (e.g., using React or Vue.js) to provide a user-friendly interface for viewing and querying activities.
+- 🌐 Web UI Dashboard: Build a frontend application (e.g., using React or Vue.js) to provide a user-friendly interface for viewing and querying activities.
 
-🔍 Enhanced API: Add more powerful querying capabilities to the API, such as filtering by user_id, date ranges, and performing aggregations.
+- 🔍 Enhanced API: Add more powerful querying capabilities to the API, such as filtering by user_id, date ranges, and performing aggregations.
 
-🔐 Authentication & Authorization: Secure the API endpoints using a method like JWT or OAuth2.
+- 🔐 Authentication & Authorization: Secure the API endpoints using a method like JWT or OAuth2.
 
-📜 Schema Enforcement: Integrate a Schema Registry (e.g., Confluent Schema Registry) to enforce a strict data structure for events published to Kafka, preventing data quality issues.
+- 📜 Schema Enforcement: Integrate a Schema Registry (e.g., Confluent Schema Registry) to enforce a strict data structure for events published to Kafka, preventing data quality issues.
 
-⚡ Performance Tuning: Conduct load testing to identify bottlenecks and tune the Go services, Kafka, and ClickHouse for even higher throughput.
+- ⚡ Performance Tuning: Conduct load testing to identify bottlenecks and tune the Go services, Kafka, and ClickHouse for even higher throughput.
