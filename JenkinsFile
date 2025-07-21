@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+
+    environment {
+        // IMPORTANT: Change to your own Docker Hub username/registry
+        DOCKER_REGISTRY = 'yourdockerhub'
+        // Jenkins Credentials ID for your Docker Hub credentials
+        DOCKER_CREDENTIALS_ID = 'dockerhub-creds' 
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your-username/your-repo.git'
+            }
+        }
+
+        stage('Build API Image') {
+            steps {
+                script {
+                    def imageName = "${DOCKER_REGISTRY}/streamtrack-api:${env.BUILD_NUMBER}"
+                    sh "docker build -t ${imageName} ./api"
+                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                        sh "echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin"
+                        sh "docker push ${imageName}"
+                    }
+                }
+            }
+        }
+
+        stage('Build Worker Image') {
+            steps {
+                script {
+                    def imageName = "${DOCKER_REGISTRY}/streamtrack-worker:${env.BUILD_NUMBER}"
+                    sh "docker build -t ${imageName} ./worker"
+                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                        sh "docker push ${imageName}"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                // Assumes Jenkins has kubectl configured to talk to your cluster
+                sh "kubectl set image deployment/api-deployment api=${DOCKER_REGISTRY}/streamtrack-api:${env.BUILD_NUMBER} -n streamtrack"
+                sh "kubectl set image deployment/worker-deployment worker=${DOCKER_REGISTRY}/streamtrack-worker:${env.BUILD_NUMBER} -n streamtrack"
+                sh "kubectl rollout status deployment/api-deployment -n streamtrack"
+                sh "kubectl rollout status deployment/worker-deployment -n streamtrack"
+            }
+        }
+    }
+}

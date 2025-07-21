@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-deployment
+  namespace: streamtrack
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: real-time-activity-tracker/streamtrack-api:latest # IMPORTANT: Change this
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-service.kafka:9092" # Helm chart service name
+        - name: CLICKHOUSE_ADDR
+          value: "clickhouse-service.clickhouse:9000" # Helm chart service name

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-deployment
+  namespace: streamtrack
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+      - name: worker
+        image: yourdockerhub/streamtrack-worker:latest # IMPORTANT: Change this
+        env:
+        - name: KAFKA_BROKER
+          value: "kafka-service.kafka:9092"
+        - name: CLICKHOUSE_ADDR
+          value: "clickhouse-service.clickhouse:9000"
