@@ -1,4 +1,4 @@
-StreamTrack 🚀
+# StreamTrack 🚀
 StreamTrack is a cloud-native, real-time event tracking system designed to ingest, process, and analyze high-volume data streams. It's built on a modern, decoupled microservices architecture and utilizes a professional-grade technology stack, making it a powerful foundation for any data analytics platform.
 
 This project demonstrates a complete end-to-end workflow, from local development with Docker Compose to a fully automated CI/CD pipeline deploying the application to a cloud-based Kubernetes cluster.
@@ -6,29 +6,29 @@ This project demonstrates a complete end-to-end workflow, from local development
 ## Core Architecture 🏗️
 The system is designed around an event-driven architecture to ensure high throughput, low latency, and resilience. Each component is decoupled and serves a specific purpose.
 
-graph TD
-    subgraph Client
-        User[👩‍💻 User/Client]
-    end
-
-    subgraph "Kubernetes Cluster (Cloud)"
-        subgraph "Application"
-            API[/"API Service (Go)"/]
-            Worker[⚙️ Worker Service (Go)]
+    graph TD
+        subgraph Client
+            User[👩‍💻 User/Client]
         end
 
-        subgraph "Data Infrastructure"
-            Kafka[<--> Kafka Topic]
-            ClickHouse[(ClickHouse DB)]
+        subgraph "Kubernetes Cluster (Cloud)"
+            subgraph "Application"
+                API[/"API Service (Go)"/]
+                Worker[⚙️ Worker Service (Go)]
+            end
+    
+            subgraph "Data Infrastructure"
+                Kafka[<--> Kafka Topic]
+                ClickHouse[(ClickHouse DB)]
+            end
+    
+            User -- "1. POST /track (JSON Event)" --> API
+            API -- "2. Publish Event" --> Kafka
+            Kafka -- "3. Consume Event" --> Worker
+            Worker -- "4. Persist Data" --> ClickHouse
+            User -- "5. GET /activities" --> API
+            API -- "6. Query Data" --> ClickHouse
         end
-
-        User -- "1. POST /track (JSON Event)" --> API
-        API -- "2. Publish Event" --> Kafka
-        Kafka -- "3. Consume Event" --> Worker
-        Worker -- "4. Persist Data" --> ClickHouse
-        User -- "5. GET /activities" --> API
-        API -- "6. Query Data" --> ClickHouse
-    end
 
 ### How It Works
 Ingestion (API Service): A lightweight service written in Go exposes an HTTP endpoint (/track). It receives activity events as JSON payloads. Its only job is to validate the request and immediately publish it to a Kafka topic. This makes the API incredibly fast and prevents it from getting blocked by database operations.
