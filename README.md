@@ -130,7 +130,7 @@ kubectl apply -f .
 ```
 This will create the deployments and services for the api and worker. Find the public IP address of the api-service to interact with your deployed application.
 
-## CI/CD Pipeline with Jenkins автоматизация
+## CI/CD Pipeline with Jenkins
 This project includes a Jenkinsfile that defines a complete, automated pipeline.
 
 **Pipeline Stages:**
